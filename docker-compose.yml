@@ -1,0 +1,93 @@
+version: '2'
+
+services:
+
+### PHP-FPM Container #######################################
+
+    php-fpm:
+        container_name: php-fpm-service
+        build:
+            context: ./php-fpm
+            dockerfile: Dockerfile-70
+        volumes_from:
+            - application
+        expose:
+            - "9000"
+        links:
+            - workspace
+
+### Laravel Application Code Container ######################
+
+    application:
+        container_name: app-src
+        build: ./application
+        volumes:
+            - ./sources/face-recognition-api:/var/www/face-recognition-api/
+
+### Databases Data Container ################################
+
+    # data:
+    #     container_name: data-service
+    #     build: ./data
+    #     volumes:
+    #         - /var/lib/mysql:/var/lib/mysql
+
+### Nginx Server Container ##################################
+
+    nginx:
+        container_name: nginx-service
+        build: ./nginx
+        volumes_from:
+            - application
+        # volumes:
+        #     - ./logs/nginx/:/var/log/nginx
+        ports:
+            - "80:80"
+            - "443:443"
+        links:
+            - php-fpm
+
+### MySQL Container #########################################
+
+    # mysql:
+    #     container_name: mysql-service
+    #     build: ./mysql
+    #     # volumes_from:
+    #     #     - data
+    #     ports:
+    #         - "3306:3306"
+    #     # volumes:
+    #     #     - ./backup-db:/var/lib/mysql
+    #     environment:
+    #         MYSQL_DATABASE: monitoring_api_db
+    #         MYSQL_USER: root
+    #         MYSQL_PASSWORD: root
+    #         MYSQL_ROOT_PASSWORD: root
+
+### Workspace Utilities Container ###########################
+
+    workspace:
+        container_name: workspace
+        build:
+            context: ./workspace
+            # args:
+            #     INSTALL_PRESTISSIMO: ${INSTALL_PRESTISSIMO}
+        volumes_from:
+            - application
+        tty: true
+
+### Phpmyadmin Container #########################################
+
+    # phpmyadmin-service:
+    #     container_name: phpmyadmin-service
+    #     image: phpmyadmin/phpmyadmin
+    #     ports:
+    #         - "88:80"
+    #     environment:
+    #         - PMA_HOST=mysql-service
+    #         - PMA_PORT=3306
+    #         - PMA_USER=root
+    #         - PMA_PASSWORD=root
+    #     restart: always
+
+### Add more Containers below ###############################
